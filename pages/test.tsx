@@ -19,7 +19,7 @@ function Blog({ key, link, title }: any)
 
 function Test()
 {
-	const { data, error, isLoading } = useSWR('https://blog.shikkhaweb.com/wp-json/wp/v2/posts?_fields=author,id,excerpt,title,link', fetcher)
+	const { data, error, isLoading } = useSWR('https://blog.shikkhaweb.com/wp-json/wp/v2/posts?_fields=author,id,excerpt,title,slug,date,excerpt,featured_media&per_page=20', fetcher)
 
 	if (error) return (
 		<>
@@ -48,7 +48,7 @@ function Test()
 			</Head>
 			<h1>Data Loaded</h1>
 			<div>Total { data.length }</div>
-			{ data.map((post: any) => (<Blog key={ post.id } link={ post.link } title={ post.title.rendered } />)) }
+			{ data.map((post: any) => (<Blog key={ post.id } link={ post.slug } title={ post.title.rendered } />)) }
 		</>
 	)
 }
