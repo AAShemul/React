@@ -1,73 +1,50 @@
-import Image from 'next/image';
-import Script from 'next/script';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { recurrent } from 'brain.js';
-const { LSTM } = recurrent;
+import brain from 'brain.js';
 
-// create configuration for training
-const config = {
-	iterations: 15000,
-	log: true,
-	logPeriod: 500,
-	layers: [10],
-};
-
-// create data which will be used for training
-const data = [
-	{ input: 'I will write a book.', output: 'future' },
-	{ input: 'He will be writing a book.', output: 'future' },
-	{ input: 'They will have written the book.', output: 'future' },
-	{ input: 'I will not cry.', output: 'future' },
-	{ input: 'You will find happiness', output: 'future' },
-	{ input: 'I am about to leave.', output: 'future' },
-	{ input: 'Will you go out?', output: 'future' },
-	{ input: 'I shall leave.', output: 'future' },
-	{ input: 'We will rock you.', output: 'future' },
-	{ input: 'I shall bring the laptop.', output: 'future' },
-
-	{ input: 'Will Smith was late.', output: 'past' },
-	{ input: 'I had been to that place.', output: 'past' },
-	{ input: 'I was selfish.', output: 'past' },
-	{ input: 'We had money.', output: 'past' },
-	{ input: 'You were so young!', output: 'past' },
-	{ input: 'It was the best day.', output: 'past' },
-	{ input: 'What were you saying?', output: 'past' },
-	{ input: 'I had been to London.', output: 'past' },
-	{ input: 'I should not have left.', output: 'past' },
-	{ input: 'What was I thinking?', output: 'past' },
-
-	{ input: 'I am here.', output: 'present' },
-	{ input: 'Are you eating regularly?', output: 'present' },
-	{ input: 'Let me in.', output: 'present' },
-	{ input: 'I am running.', output: 'present' },
-	{ input: 'Please stop screaming.', output: 'present' },
-	{ input: 'I cannot help you', output: 'present' },
-	{ input: 'Obey the rules.', output: 'present' },
-	{ input: 'Call me a lawyer.', output: 'present' },
-	{ input: 'Am I wrong?', output: 'present' },
-	{ input: 'Right this way.', output: 'present' },
-];
-
-// the thing we would test
-const test = 'Will you be my friend?';
-
-const network = new LSTM();
-network.train(data, config);
-const output = network.run(test);
-
-function Model()
+function Model(): JSX.Element
 {
+	const [brainModel, setBrainModel] = useState(null);
+
+	useEffect(() =>
+	{
+		const loadModel = async () => {
+			const response = await fetch('brain-model.json');
+			const json = await response.json();
+			const data = JSON.parse(json);
+			const model = new brain.NeuralNetwork();
+			model.fromJSON(data);
+			setBrainModel(model);
+		};
+
+		loadModel();
+	}, []);
+
+	const brainForm = (event: any): void =>
+	{
+		event.preventDefault();
+		const inputText = event.target.elements['input-text'].value;
+		const prediction = document.getElementById('prediction');
+		const result = brainModel.run(inputText);
+		prediction.innerHTML = result;
+	};
+
 	return (
 		<>
 			<Head>
-				<title>Brain.js Model</title>
-				<meta name="description" content="Model" />
-				<link rel="icon" href="/favicon.ico" />
+				<title>Brain.JS Model</title>
 			</Head>
-			<h1>Model</h1>
-			<p>Tense: ${output}</p>
+			<div className="container">
+				<h1>Brain.js Demo</h1>
+				<form id="predict-form" onSubmit={brainForm}>
+					<label htmlFor="input-text">Enter a sentence:</label>
+					<input type="text" id="input-text" name="input-text" />
+					<button type="submit">Predict Tense</button>
+				</form>
+				<div id="prediction"></div>
+			</div>
 		</>
 	);
 }
 
-export default Model();
+export default Model;
